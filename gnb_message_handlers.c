@@ -4,7 +4,7 @@
 
 #include "gnb_message_handlers.h"
 #include <stdbool.h>
-#define CONNECTED_UES 4
+#define CONNECTED_UES 8
 
 int gnb_id = 0;
 bool is_initialized = false;
@@ -120,6 +120,10 @@ void free_ran_param_map(RANParamMapEntry **map){
                 // in this case we free the ue list first
                 free_ue_list(map[i]->ue_list);
                 break;
+            case RAN_PARAM_MAP_ENTRY__VALUE_CELL_LOAD_PRBS:
+                // there is no pointer inside the entry to free in this case
+                break;
+
             case RAN_PARAM_MAP_ENTRY__VALUE__NOT_SET:
                 // nothing to do here, skip to default
             default:
@@ -151,6 +155,8 @@ const char* get_enum_name(RANParameter ran_par_enum){
             return "gnb_id";
         case RAN_PARAMETER__UE_LIST:
             return "ue_list";
+        case RAN_PARAMETER__CELL_LOAD:
+            return "cell_load";
         default:
             return "unrecognized param";
     }
@@ -274,12 +280,34 @@ UeListM* build_ue_list_message(){
         // read mesures and add to message (actually just send random data)
 
         // measures
-        ue_info_list[i]->has_meas_type_1 = 1;
-        ue_info_list[i]->meas_type_1 = rand();
-        ue_info_list[i]->has_meas_type_2 = 1;
-        ue_info_list[i]->meas_type_2 = rand();
-        ue_info_list[i]->has_meas_type_3 = 1;
-        ue_info_list[i]->meas_type_3 = rand();
+
+        ue_info_list[i]->has_rsrp = 1;
+        ue_info_list[i]->rsrp = -80.0 + (rand() % 40);  // RSRP between -120 to -80 dBm
+
+        ue_info_list[i]->has_ber_uplink = 1;
+        ue_info_list[i]->ber_uplink = (float)rand() / RAND_MAX * 0.01;  // BER 0-1%
+
+        ue_info_list[i]->has_ber_downlink = 1;
+        ue_info_list[i]->ber_downlink = (float)rand() / RAND_MAX * 0.01;  // BER 0-1%
+
+        ue_info_list[i]->has_mcs_uplink = 1;
+        ue_info_list[i]->mcs_uplink = rand() % 29;  // MCS between 0 and 28
+
+        ue_info_list[i]->has_mcs_downlink = 1;
+        ue_info_list[i]->mcs_downlink = rand() % 29;  // MCS between 0 and 28
+
+        // ue_info_list[i]->has_timestamp = 1;
+        // ue_info_list[i]->timestamp = time(NULL);  // current timestamp
+
+
+
+
+        // ue_info_list[i]->has_meas_type_1 = 1;
+        // ue_info_list[i]->meas_type_1 = rand();
+        // ue_info_list[i]->has_meas_type_2 = 1;
+        // ue_info_list[i]->meas_type_2 = rand();
+        // ue_info_list[i]->has_meas_type_3 = 1;
+        // ue_info_list[i]->meas_type_3 = rand();
 
         // properties
         ue_info_list[i]->has_prop_1 = 1;
@@ -324,6 +352,12 @@ void ran_read(RANParameter ran_par_enum, RANParamMapEntry* map_entry){
         case RAN_PARAMETER__UE_LIST:
             map_entry->value_case=RAN_PARAM_MAP_ENTRY__VALUE_UE_LIST;
             map_entry->ue_list = build_ue_list_message();
+            break;
+        case RAN_PARAMETER__CELL_LOAD:
+            map_entry->value_case=RAN_PARAM_MAP_ENTRY__VALUE_INT64_VALUE;
+            // here we just return a random number, in the future this will be replaced with a real value
+            map_entry->value_case = RAN_PARAM_MAP_ENTRY__VALUE_CELL_LOAD_PRBS;
+            map_entry->cell_load_prbs = rand() % 100; // random cell load between 0 and 100
             break;
         default:
             printf("Unrecognized param %d\n",ran_par_enum);
