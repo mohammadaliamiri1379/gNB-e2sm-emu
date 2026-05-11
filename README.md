@@ -38,4 +38,4 @@ and then in this terminal you can run the gNB:
 ```
 
 ## Baremetal 
-This depends on your system, but you basically need a C compiler, cmake, and protobuf-c. Ubuntu instructions can be extracted from the Dockerfile.
+This depends on your system, but you basically need a C compiler, cmake, and protobuf-c. Ubuntu instructions can be extracted from the Dockerfile
